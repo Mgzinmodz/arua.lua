@@ -1,223 +1,195 @@
 -- // SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
-local StarterGui = game:GetService("StarterGui")
 
 local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
+local Camera = Workspace.CurrentCamera
 
--- ATUALIZAR CHARACTER
 local Character = Player.Character or Player.CharacterAdded:Wait()
 Player.CharacterAdded:Connect(function(char)
     Character = char
 end)
 
--- // GUI PRINCIPAL
-local ScreenGui = Instance.new("ScreenGui", PlayerGui)
-ScreenGui.Name = "MGCHEATS"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.DisplayOrder = 999999
+-- ==============================================
+-- // ESTADOS
+-- ==============================================
+local ESP_PLAYER = false
+local ESP_MURDER = false
+local ESP_SHERIFF = false
+local AIMBOT = false
+local NOCLIP = false
+local SPEED = false
+local FLY = false
+local FARM = false
 
 -- ==============================================
--- // BOTÃO FLUTUANTE
+-- // DETECTAR FUNÇÃO (MM2)
 -- ==============================================
-local Button = Instance.new("TextButton", ScreenGui)
-Button.Size = UDim2.new(0,80,0,80)
-Button.Position = UDim2.new(0.02,0,0.45,0)
-Button.Text = "MG"
-Button.BackgroundColor3 = Color3.new(0,0,0)
-Button.TextColor3 = Color3.new(1,0,0)
-Button.Draggable = true
-Button.Font = Enum.Font.GothamBold
-Button.TextSize = 36
+local function GetRole(plr)
+    if not plr.Character then return "Player" end
 
-Instance.new("UICorner", Button).CornerRadius = UDim.new(1,0)
-local StrokeBtn = Instance.new("UIStroke", Button)
-StrokeBtn.Thickness = 4
-StrokeBtn.Color = Color3.new(1,0,0)
+    for _, v in pairs(plr.Backpack:GetChildren()) do
+        if v.Name:lower():find("knife") then return "Murder" end
+        if v.Name:lower():find("gun") then return "Sheriff" end
+    end
 
--- ==============================================
--- // MENU PRINCIPAL
--- ==============================================
-local Menu = Instance.new("Frame", ScreenGui)
-Menu.Size = UDim2.new(0, 450, 0, 700) -- AUMENTEI O TAMANHO
-Menu.Position = UDim2.new(0.05,0,0.1,0)
-Menu.BackgroundColor3 = Color3.new(0.1,0.1,0.1)
-Menu.Active = true
-Menu.Draggable = true
-Menu.Visible = false
+    for _, v in pairs(plr.Character:GetChildren()) do
+        if v.Name:lower():find("knife") then return "Murder" end
+        if v.Name:lower():find("gun") then return "Sheriff" end
+    end
 
-Instance.new("UICorner", Menu).CornerRadius = UDim.new(0,15)
-
--- TOPO
-local TopBar = Instance.new("Frame", Menu)
-TopBar.Size = UDim2.new(1,0,0,50)
-TopBar.Position = UDim2.new(0,0,0,0)
-TopBar.BackgroundColor3 = Color3.new(0,0,0)
-
-local Title = Instance.new("TextLabel", TopBar)
-Title.Size = UDim2.new(1, -100, 1, 0)
-Title.Position = UDim2.new(0,10,0,0)
-Title.BackgroundTransparency = 1
-Title.Text = "★ MGCHEATS ★"
-Title.TextColor3 = Color3.new(1,0,0)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 22
-
--- ==============================================
--- // SISTEMA DE AURA
--- ==============================================
-local YAtual = 60
-
--- TITULO
-local TituloAura = Instance.new("TextLabel", Menu)
-TituloAura.Size = UDim2.new(0.9,0,0,40)
-TituloAura.Position = UDim2.new(0.05,0,0,YAtual)
-TituloAura.BackgroundTransparency = 1
-TituloAura.Text = "# PEGAR AURA"
-TituloAura.TextColor3 = Color3.new(1,1,0)
-TituloAura.Font = Enum.Font.GothamBold
-TituloAura.TextSize = 18
-YAtual = YAtual + 50
-
--- INPUT PARA DIGITAR
-local InputAura = Instance.new("TextBox", Menu)
-InputAura.Size = UDim2.new(0.9,0,0,45)
-InputAura.Position = UDim2.new(0.05,0,0,YAtual)
-InputAura.PlaceholderText = "Quantas Aura? (1 até 1.000.000)"
-InputAura.BackgroundColor3 = Color3.new(0.2,0.2,0.2)
-InputAura.TextColor3 = Color3.new(1,1,1)
-InputAura.Font = Enum.Font.GothamBold
-InputAura.Text = "1000"
-YAtual = YAtual + 55
-
--- BOTÃO PEGAR
-local BtnPegar = Instance.new("TextButton", Menu)
-BtnPegar.Size = UDim2.new(0.9,0,0,50)
-BtnPegar.Position = UDim2.new(0.05,0,0,YAtual)
-BtnPegar.Text = "✅ PEGAR AURA"
-BtnPegar.BackgroundColor3 = Color3.new(0,1,0)
-BtnPegar.TextColor3 = Color3.new(1,1,1)
-BtnPegar.Font = Enum.Font.GothamBold
-BtnPegar.TextSize = 18
-YAtual = YAtual + 70
-
--- ==============================================
--- // CATEGORIA ITENS
--- ==============================================
-local TituloItens = Instance.new("TextLabel", Menu)
-TituloItens.Size = UDim2.new(0.9,0,0,40)
-TituloItens.Position = UDim2.new(0.05,0,0,YAtual)
-TituloItens.BackgroundTransparency = 1
-TituloItens.Text = "# ITENS"
-TituloItens.TextColor3 = Color3.new(0,1,1)
-TituloItens.Font = Enum.Font.GothamBold
-TituloItens.TextSize = 18
-YAtual = YAtual + 50
-
--- ==============================================
--- // LISTA DE TODOS OS ITENS
--- ==============================================
-local Itens = {
-    "🔥 Aura Vermelha",
-    "💧 Aura Azul",
-    "🍃 Aura Verde",
-    "☯️ Aura Roxa",
-    "⚪ Aura Branca",
-    "⚫ Aura Preta",
-    "🌑 Aura Escura",
-    "🔨 Martelo MiniSmit",
-    "💜 Tapa de Erro",
-    "🌌 Bofetada do Vazio",
-    "🔥 Tapa de Lava",
-    "👊 Batida Dourada",
-    "🪁 Voe",
-    "🛡️ Administrador",
-    "🔫 Laser"
-}
-
--- CRIAR BOTÕES
-local BotoesItens = {}
-for i, nomeItem in pairs(Itens) do
-    local Btn = Instance.new("TextButton", Menu)
-    Btn.Size = UDim2.new(0.9,0,0,45)
-    Btn.Position = UDim2.new(0.05,0,0,YAtual)
-    Btn.Text = nomeItem
-    Btn.BackgroundColor3 = Color3.new(0.2,0.2,0.2)
-    Btn.TextColor3 = Color3.new(1,1,1)
-    Btn.Font = Enum.Font.GothamBold
-    Btn.TextSize = 14
-    
-    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0,8)
-    
-    BotoesItens[Btn] = nomeItem
-    YAtual = YAtual + 50
+    return "Player"
 end
 
 -- ==============================================
--- // FUNÇÕES
+-- // ESP PRO
 -- ==============================================
-local function Notificar(titulo, texto)
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {
-            Title = titulo;
-            Text = texto;
-            Duration = 3;
-        })
-    end)
+local function ApplyESP(plr, color)
+    if plr == Player or not plr.Character then return end
+
+    local char = plr.Character
+    local hl = char:FindFirstChild("MG_ESP")
+
+    if not hl then
+        hl = Instance.new("Highlight")
+        hl.Name = "MG_ESP"
+        hl.FillTransparency = 0.5
+        hl.OutlineTransparency = 0
+        hl.Parent = char
+    end
+
+    hl.FillColor = color
+    hl.OutlineColor = color
+    hl.Enabled = true
 end
 
-local function EncontrarValor(nome)
-    if Player:FindFirstChild("leaderstats") then
-        for _, v in pairs(Player.leaderstats:GetChildren()) do
-            if string.find(string.lower(v.Name), string.lower(nome)) then
-                return v
+local function RemoveESP(plr)
+    if plr.Character and plr.Character:FindFirstChild("MG_ESP") then
+        plr.Character.MG_ESP:Destroy()
+    end
+end
+
+-- LOOP ESP
+RunService.RenderStepped:Connect(function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player then
+            local role = GetRole(plr)
+
+            if role == "Murder" and ESP_MURDER then
+                ApplyESP(plr, Color3.fromRGB(255,0,0))
+
+            elseif role == "Sheriff" and ESP_SHERIFF then
+                ApplyESP(plr, Color3.fromRGB(0,150,255))
+
+            elseif role == "Player" and ESP_PLAYER then
+                ApplyESP(plr, Color3.fromRGB(0,255,0))
+
+            else
+                RemoveESP(plr)
             end
         end
     end
-    return nil
-end
-
-local function DarAura(qtd)
-    local valor = EncontrarValor("aura")
-    if valor then
-        valor.Value = qtd
-        Notificar("SUCESSO", "Ganhou "..qtd.." Aura!")
-    else
-        Notificar("ERRO", "Aura não encontrada")
-    end
-end
-
-local function EquiparItem(nome)
-    for _, tool in pairs(Player.Backpack:GetChildren()) do
-        if tool:IsA("Tool") and string.find(string.lower(tool.Name), string.lower(nome)) then
-            tool.Parent = Character
-            Notificar("ITEM", "Equipado: "..tool.Name)
-            return
-        end
-    end
-    Notificar("ERRO", "Item não encontrado")
-end
-
--- ==============================================
--- // BOTÕES FUNCIONANDO
--- ==============================================
-Button.MouseButton1Click:Connect(function() Menu.Visible = not Menu.Visible end)
-
-BtnPegar.MouseButton1Click:Connect(function()
-    local qtd = tonumber(InputAura.Text) or 0
-    if qtd < 1 then qtd = 1 end
-    if qtd > 1000000 then qtd = 1000000 end
-    InputAura.Text = tostring(qtd)
-    DarAura(qtd)
 end)
 
-for btn, nome in pairs(BotoesItens) do
-    btn.MouseButton1Click:Connect(function()
-        EquiparItem(nome)
-    end)
-end
+-- ==============================================
+-- // AIMBOT (FOCA MURDER)
+-- ==============================================
+RunService.RenderStepped:Connect(function()
+    if not AIMBOT then return end
 
-print("✅ SCRIPT PRONTO - MENU COMPLETO")
+    local target = nil
+    local dist = math.huge
 
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Head") then
+            if GetRole(plr) == "Murder" then
+                local mag = (Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                if mag < dist then
+                    dist = mag
+                    target = plr
+                end
+            end
+        end
+    end
+
+    if target then
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+    end
+end)
+
+-- ==============================================
+-- // SPEED
+-- ==============================================
+RunService.Heartbeat:Connect(function()
+    if SPEED and Character and Character:FindFirstChild("Humanoid") then
+        Character.Humanoid.WalkSpeed = 100
+    end
+end)
+
+-- ==============================================
+-- // NOCLIP
+-- ==============================================
+RunService.Stepped:Connect(function()
+    if NOCLIP and Character then
+        for _, v in pairs(Character:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- ==============================================
+-- // FLY PRO (MOBILE FUNCIONA)
+-- ==============================================
+RunService.Heartbeat:Connect(function()
+    if FLY and Character and Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = Character.HumanoidRootPart
+        hrp.Velocity = Camera.CFrame.LookVector * 60
+    end
+end)
+
+-- ==============================================
+-- // AUTO FARM (SEGURO)
+-- ==============================================
+RunService.Heartbeat:Connect(function()
+    if FARM and Character and Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = Character.HumanoidRootPart
+
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") then
+                if v.Name:lower():find("coin") or v.Name:lower():find("box") then
+                    if (hrp.Position - v.Position).Magnitude < 20 then
+                        firetouchinterest(hrp, v, 0)
+                        firetouchinterest(hrp, v, 1)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- ==============================================
+-- // ANTI AFK
+-- ==============================================
+Player.Idled:Connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0),Workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0),Workspace.CurrentCamera.CFrame)
+end)
+
+-- ==============================================
+-- // CONTROLES
+-- ==============================================
+_G.ESP_PLAYER = function(v) ESP_PLAYER = v end
+_G.ESP_MURDER = function(v) ESP_MURDER = v end
+_G.ESP_SHERIFF = function(v) ESP_SHERIFF = v end
+_G.AIMBOT = function(v) AIMBOT = v end
+_G.NOCLIP = function(v) NOCLIP = v end
+_G.SPEED = function(v) SPEED = v end
+_G.FLY = function(v) FLY = v end
+_G.FARM = function(v) FARM = v end
+
+print("🔥 MG PRO SCRIPT CARREGADO")
