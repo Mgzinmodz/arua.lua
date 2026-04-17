@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local VirtualUser = game:GetService("VirtualUser")
 
 local Player = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -30,14 +31,14 @@ local FARM = false
 local function GetRole(plr)
     if not plr.Character then return "Player" end
 
-    for _, v in pairs(plr.Backpack:GetChildren()) do
-        if v.Name:lower():find("knife") then return "Murder" end
-        if v.Name:lower():find("gun") then return "Sheriff" end
-    end
+    -- Verifica na MÃO e na MOCHILA
+    local items = {}
+    if plr.Backpack then items = table.clone(plr.Backpack:GetChildren()) end
+    if plr.Character then for _,v in pairs(plr.Character:GetChildren()) do table.insert(items, v) end end
 
-    for _, v in pairs(plr.Character:GetChildren()) do
-        if v.Name:lower():find("knife") then return "Murder" end
-        if v.Name:lower():find("gun") then return "Sheriff" end
+    for _, v in pairs(items) do
+        if v.Name:lower():find("knife") or v.Name:lower():find("murder") then return "Murder" end
+        if v.Name:lower():find("gun") or v.Name:lower():find("revolver") or v.Name:lower():find("sheriff") then return "Sheriff" end
     end
 
     return "Player"
@@ -79,13 +80,10 @@ RunService.RenderStepped:Connect(function()
 
             if role == "Murder" and ESP_MURDER then
                 ApplyESP(plr, Color3.fromRGB(255,0,0))
-
             elseif role == "Sheriff" and ESP_SHERIFF then
                 ApplyESP(plr, Color3.fromRGB(0,150,255))
-
             elseif role == "Player" and ESP_PLAYER then
                 ApplyESP(plr, Color3.fromRGB(0,255,0))
-
             else
                 RemoveESP(plr)
             end
@@ -97,7 +95,7 @@ end)
 -- // AIMBOT (FOCA MURDER)
 -- ==============================================
 RunService.RenderStepped:Connect(function()
-    if not AIMBOT then return end
+    if not AIMBOT or not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
 
     local target = nil
     local dist = math.huge
@@ -114,7 +112,7 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    if target then
+    if target and target.Character and target.Character:FindFirstChild("Head") then
         Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
     end
 end)
@@ -122,9 +120,11 @@ end)
 -- ==============================================
 -- // SPEED
 -- ==============================================
-RunService.Heartbeat:Connect(function()
-    if SPEED and Character and Character:FindFirstChild("Humanoid") then
-        Character.Humanoid.WalkSpeed = 100
+task.spawn(function()
+    while task.wait(0.1) do
+        if SPEED and Character and Character:FindFirstChild("Humanoid") then
+            Character.Humanoid.WalkSpeed = 100
+        end
     end
 end)
 
@@ -152,18 +152,21 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ==============================================
--- // AUTO FARM (SEGURO)
+-- // AUTO FARM (SEGURO E FUNCIONAL)
 -- ==============================================
 RunService.Heartbeat:Connect(function()
     if FARM and Character and Character:FindFirstChild("HumanoidRootPart") then
         local hrp = Character.HumanoidRootPart
 
         for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("BasePart") then
-                if v.Name:lower():find("coin") or v.Name:lower():find("box") then
-                    if (hrp.Position - v.Position).Magnitude < 20 then
-                        firetouchinterest(hrp, v, 0)
-                        firetouchinterest(hrp, v, 1)
+            if v:IsA("Part") or v:IsA("UnionOperation") then
+                if v.Name:lower():find("coin") or v.Name:lower():find("box") or v.Name:lower():find("money") then
+                    if (hrp.Position - v.Position).Magnitude < 15 then
+                        -- MÉTODO SEGURO SEM firetouchinterest
+                        local oldPos = hrp.CFrame
+                        hrp.CFrame = CFrame.new(v.Position)
+                        task.wait()
+                        hrp.CFrame = oldPos
                     end
                 end
             end
@@ -175,9 +178,9 @@ end)
 -- // ANTI AFK
 -- ==============================================
 Player.Idled:Connect(function()
-    game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0),Workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0),Workspace.CurrentCamera.CFrame)
+    VirtualUser:Button2Down(Vector2.new(0,0), Camera.CFrame)
+    task.wait(0.5)
+    VirtualUser:Button2Up(Vector2.new(0,0), Camera.CFrame)
 end)
 
 -- ==============================================
@@ -192,4 +195,4 @@ _G.SPEED = function(v) SPEED = v end
 _G.FLY = function(v) FLY = v end
 _G.FARM = function(v) FARM = v end
 
-print("🔥 MG PRO SCRIPT CARREGADO")
+print("🔥 MG PRO SCRIPT CARREGADO - VERSÃO CORRIGIDA")
